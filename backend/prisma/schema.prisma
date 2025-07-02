@@ -1,0 +1,239 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Usuários
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  
+  plan      String   @default("FREE") // 'FREE', 'BASIC', 'PRO', 'ENTERPRISE'
+  planExpiresAt DateTime? @map("plan_expires_at")
+  
+  emailVerified Boolean @default(false) @map("email_verified")
+  emailVerifiedAt DateTime? @map("email_verified_at")
+  
+  avatar        String?
+  timezone      String? @default("America/Sao_Paulo")
+  refreshToken  String? @map("refresh_token")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  isActive  Boolean  @default(true) @map("is_active")
+  
+  // Relacionamentos
+  products      Product[]
+  sales         Sale[]
+  adSpends      AdSpend[]
+  expenses      Expense[]
+  subscriptions Subscription[]
+  settings      UserSettings?
+  webhookLogs   WebhookLog[]
+  
+  @@map("users")
+}
+
+// Produtos
+model Product {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  name        String
+  description String?
+  price       Decimal
+  
+  monthlyGoal Decimal? @map("monthly_goal")
+  category    String?
+  tags        String // JSON string para compatibilidade SQLite
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  isActive  Boolean  @default(true) @map("is_active")
+  
+  // Relacionamentos
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  saleProducts SaleProduct[]
+  adSpends     AdSpend[]
+  
+  @@map("products")
+}
+
+// Vendas (Kirvano)
+model Sale {
+  id                 String   @id @default(uuid())
+  userId             String   @map("user_id")
+  kirvanoSaleId      String?  @unique @map("kirvano_sale_id")
+  kirvanoCheckoutId  String?  @map("kirvano_checkout_id")
+  
+  customerName     String? @map("customer_name")
+  customerEmail    String? @map("customer_email")
+  customerDocument String? @map("customer_document")
+  customerPhone    String? @map("customer_phone")
+  
+  paymentMethod       String? @map("payment_method")
+  paymentBrand        String? @map("payment_brand")
+  paymentInstallments Int?    @map("payment_installments")
+  
+  totalPrice Decimal @map("total_price")
+  saleType   String  @map("sale_type") // 'ONE_TIME', 'RECURRING'
+  status     String  // 'APPROVED', 'REFUNDED', 'CHARGEBACK'
+  
+  utmSource   String? @map("utm_source")
+  utmMedium   String? @map("utm_medium")
+  utmCampaign String? @map("utm_campaign")
+  utmTerm     String? @map("utm_term")
+  utmContent  String? @map("utm_content")
+  
+  saleDate   DateTime? @map("sale_date")
+  finishedAt DateTime? @map("finished_at")
+  refundedAt DateTime? @map("refunded_at")
+  
+  rawData   Json?    @map("raw_data")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  // Relacionamentos
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  saleProducts  SaleProduct[]
+  subscriptions Subscription[]
+  
+  @@map("sales")
+}
+
+// Produtos vendidos
+model SaleProduct {
+  id        String  @id @default(uuid())
+  saleId    String  @map("sale_id")
+  productId String? @map("product_id") // nullable se não teve match
+  
+  kirvanoProductId String? @map("kirvano_product_id")
+  productName      String? @map("product_name")
+  offerName        String? @map("offer_name")
+  description      String?
+  price            Decimal
+  isOrderBump      Boolean @default(false) @map("is_order_bump")
+  photoUrl         String? @map("photo_url")
+  
+  // Relacionamentos
+  sale    Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  
+  @@map("sale_products")
+}
+
+// Gastos com anúncios
+model AdSpend {
+  id        String  @id @default(uuid())
+  userId    String  @map("user_id")
+  productId String? @map("product_id") // nullable
+  
+  platform     String @default("META") // 'META', 'GOOGLE', 'TIKTOK'
+  campaignName String @map("campaign_name")
+  adSetName    String @map("ad_set_name")
+  adName       String @map("ad_name")
+  
+  amount        Decimal
+  impressions   Int?
+  clicks        Int?
+  results       Int?
+  costPerResult Decimal? @map("cost_per_result")
+  
+  date       DateTime
+  importedAt DateTime @default(now()) @map("imported_at")
+  
+  // Relacionamentos
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  
+  @@map("ad_spends")
+}
+
+// Despesas
+model Expense {
+  id          String  @id @default(uuid())
+  userId      String  @map("user_id")
+  description String 
+  amount      Decimal
+  category    String  // 'marketing', 'tools', 'taxes', 'education', 'operational'
+  
+  isRecurring     Boolean @default(false) @map("is_recurring")
+  recurrenceType  String? @map("recurrence_type") // 'monthly', 'yearly'
+  
+  expenseDate DateTime @map("expense_date")
+  dueDate     DateTime? @map("due_date")
+  
+  invoiceUrl  String? @map("invoice_url")
+  invoiceData Json?   @map("invoice_data") // dados extraídos por OCR
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  // Relacionamentos
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("expenses")
+}
+
+// Assinaturas
+model Subscription {
+  id             String   @id @default(uuid())
+  saleId         String   @map("sale_id")
+  userId         String   @map("user_id")
+  planName       String   @map("plan_name")
+  chargeFrequency String  @map("charge_frequency") // 'MONTHLY', 'ANNUALLY'
+  nextChargeDate DateTime @map("next_charge_date")
+  status         String   // 'ACTIVE', 'CANCELED', 'EXPIRED'
+  
+  canceledAt DateTime? @map("canceled_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  
+  // Relacionamentos
+  sale Sale @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("subscriptions")
+}
+
+// Configurações do usuário
+model UserSettings {
+  id     String @id @default(uuid())
+  userId String @unique @map("user_id")
+  
+  kirvanoWebhookToken    String? @map("kirvano_webhook_token")
+  taxSettings            Json?   @map("tax_settings")
+  notificationPreferences Json?  @map("notification_preferences")
+  integrationsConfig     Json?   @map("integrations_config")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // Relacionamentos
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("user_settings")
+}
+
+// Logs de webhook
+model WebhookLog {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  eventType        String   @map("event_type")
+  eventData        Json     @map("event_data")
+  processingStatus String   @map("processing_status") // 'success', 'error', 'pending'
+  errorMessage     String?  @map("error_message")
+  
+  receivedAt  DateTime  @default(now()) @map("received_at")
+  processedAt DateTime? @map("processed_at")
+  
+  // Relacionamentos
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("webhook_logs")
+}

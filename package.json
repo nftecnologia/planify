@@ -1,0 +1,74 @@
+{
+  "name": "financeinfo-pro",
+  "version": "1.0.0",
+  "description": "FinanceInfo Pro - SaaS para gestão financeira com integração Kirvano",
+  "private": true,
+  "scripts": {
+    "dev": "npm run docker:up && npm run dev:wait",
+    "dev:wait": "wait-on tcp:5432 tcp:6379 && echo '✅ Banco de dados e cache prontos!'",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "docker:up": "docker-compose up -d postgres redis",
+    "docker:up:tools": "docker-compose --profile tools up -d",
+    "docker:down": "docker-compose down",
+    "docker:restart": "docker-compose restart",
+    "docker:logs": "docker-compose logs -f",
+    "docker:logs:postgres": "docker-compose logs -f postgres",
+    "docker:logs:redis": "docker-compose logs -f redis",
+    "docker:clean": "docker-compose down -v && docker system prune -f",
+    "docker:reset": "npm run docker:clean && npm run docker:up",
+    "db:status": "docker-compose exec postgres pg_isready -U financeinfo_user -d financeinfo_dev",
+    "db:psql": "docker-compose exec postgres psql -U financeinfo_user -d financeinfo_dev",
+    "db:backup": "docker-compose exec postgres pg_dump -U financeinfo_user financeinfo_dev > backup_$(date +%Y%m%d_%H%M%S).sql",
+    "db:restore": "docker-compose exec -T postgres psql -U financeinfo_user -d financeinfo_dev",
+    "redis:cli": "docker-compose exec redis redis-cli -a dev_redis_password",
+    "redis:flushall": "docker-compose exec redis redis-cli -a dev_redis_password flushall",
+    "setup": "npm run setup:env && npm run docker:up && npm run setup:deps",
+    "setup:env": "cp .env.example .env && echo '⚠️  Configure o arquivo .env antes de continuar'",
+    "setup:deps": "npm install && npm run setup:workspaces",
+    "setup:workspaces": "npm run setup:frontend && npm run setup:backend",
+    "setup:frontend": "cd frontend && npm install",
+    "setup:backend": "cd backend && npm install",
+    "clean": "npm run docker:down && rm -rf node_modules frontend/node_modules backend/node_modules shared/node_modules",
+    "clean:install": "npm run clean && npm run setup:deps",
+    "health": "npm run health:postgres && npm run health:redis",
+    "health:postgres": "docker-compose exec postgres pg_isready -U financeinfo_user -d financeinfo_dev",
+    "health:redis": "docker-compose exec redis redis-cli -a dev_redis_password ping",
+    "lint": "npm run lint:frontend && npm run lint:backend",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:backend": "cd backend && npm run lint",
+    "test": "npm run test:frontend && npm run test:backend",
+    "test:frontend": "cd frontend && npm test",
+    "test:backend": "cd backend && npm test",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build"
+  },
+  "workspaces": [
+    "frontend",
+    "backend", 
+    "shared"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "wait-on": "^7.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/financeinfo-pro.git"
+  },
+  "author": "FinanceInfo Team",
+  "license": "UNLICENSED",
+  "keywords": [
+    "saas",
+    "finance",
+    "kirvano",
+    "dashboard",
+    "analytics"
+  ]
+}

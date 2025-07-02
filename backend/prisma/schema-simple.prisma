@@ -1,0 +1,61 @@
+// Schema simplificado para testar módulo de despesas
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Usuários
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  
+  plan      String   @default("FREE")
+  planExpiresAt DateTime? @map("plan_expires_at")
+  
+  emailVerified Boolean @default(false) @map("email_verified")
+  emailVerifiedAt DateTime? @map("email_verified_at")
+  
+  avatar        String?
+  timezone      String? @default("America/Sao_Paulo")
+  refreshToken  String? @map("refresh_token")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  isActive  Boolean  @default(true) @map("is_active")
+  
+  // Relacionamentos
+  expenses      Expense[]
+  
+  @@map("users")
+}
+
+// Despesas - Foco principal do Agent 2
+model Expense {
+  id          String  @id @default(uuid())
+  userId      String  @map("user_id")
+  description String
+  amount      Float
+  category    String  // 'marketing', 'tools', 'taxes', 'education', 'operational'
+  
+  isRecurring     Boolean @default(false) @map("is_recurring")
+  recurrenceType  String? @map("recurrence_type") // 'monthly', 'yearly'
+  
+  expenseDate DateTime @map("expense_date")
+  dueDate     DateTime? @map("due_date")
+  
+  invoiceUrl  String? @map("invoice_url")
+  invoiceData String? @map("invoice_data") // JSON string para OCR data
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  // Relacionamentos
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("expenses")
+}
