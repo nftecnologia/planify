@@ -8,7 +8,7 @@
 - **Engine**: PostgreSQL 17
 - **Região**: nyc1
 - **Status**: creating (aguardando ficar online)
-- **Connection URI**: `postgresql://doadmin:AVNS__f4THTLEsUC58u7NvYN@planify-postgres-do-user-23465503-0.e.db.ondigitalocean.com:25060/defaultdb?sslmode=require`
+- **Connection URI**: `postgresql://doadmin:***@planify-postgres-do-user-23465503-0.e.db.ondigitalocean.com:25060/defaultdb?sslmode=require`
 
 ### **Backend App**
 - **ID**: `5e0b22ed-405d-4449-b050-7f91a707a8c7`
@@ -58,13 +58,13 @@ O PostgreSQL ainda está sendo criado. Quando estiver online:
 ```env
 NODE_ENV=production
 PORT=8080
-DATABASE_URL=postgresql://doadmin:AVNS__f4THTLEsUC58u7NvYN@planify-postgres-do-user-23465503-0.e.db.ondigitalocean.com:25060/defaultdb?sslmode=require
-REDIS_URL=redis://default:AXBPAAIjcDEyNTk0NTFiNjc1YTQ0ZjAwYjc5OWNhYzE2NTIzZGQzOXAxMA@equipped-buzzard-28751.upstash.io:6379
-JWT_SECRET=financeinfo-pro-production-jwt-secret-2025-secure-key
-JWT_REFRESH_SECRET=financeinfo-pro-production-refresh-secret-2025-secure-key
+DATABASE_URL=postgresql://doadmin:***@planify-postgres-do-user-23465503-0.e.db.ondigitalocean.com:25060/defaultdb?sslmode=require
+REDIS_URL=redis://default:***@equipped-buzzard-28751.upstash.io:6379
+JWT_SECRET=***
+JWT_REFRESH_SECRET=***
 JWT_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
-WEBHOOK_SECRET=financeinfo-webhook-production-secret-2025
+WEBHOOK_SECRET=***
 ```
 
 ### **Frontend**
