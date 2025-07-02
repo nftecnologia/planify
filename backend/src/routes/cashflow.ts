@@ -9,17 +9,18 @@ const router = Router();
  * @desc Obter dados históricos de fluxo de caixa
  * @access Private
  */
-router.get('/historical', authenticate, async (req: Request, res: Response) => {
+router.get('/historical', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ 
+      res.status(401).json({ 
         error: 'Token inválido', 
         code: 'INVALID_TOKEN' 
       });
+      return;
     }
 
-    const months = parseInt(req.query.months as string) || 6;
+    const months = parseInt(req.query['months'] as string) || 6;
     const historicalData = await cashFlowService.getHistoricalData(userId, months);
 
     res.json({
@@ -47,17 +48,18 @@ router.get('/historical', authenticate, async (req: Request, res: Response) => {
  * @desc Obter projeções de fluxo de caixa para cenários
  * @access Private
  */
-router.get('/projections', authenticate, async (req: Request, res: Response) => {
+router.get('/projections', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ 
+      res.status(401).json({ 
         error: 'Token inválido', 
         code: 'INVALID_TOKEN' 
       });
+      return;
     }
 
-    const periods = parseInt(req.query.periods as string) || 3;
+    const periods = parseInt(req.query['periods'] as string) || 3;
     const projections = await cashFlowService.generateProjections(userId, periods);
 
     res.json({
@@ -85,14 +87,15 @@ router.get('/projections', authenticate, async (req: Request, res: Response) => 
  * @desc Obter insights e recomendações de fluxo de caixa
  * @access Private
  */
-router.get('/insights', authenticate, async (req: Request, res: Response) => {
+router.get('/insights', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ 
+      res.status(401).json({ 
         error: 'Token inválido', 
         code: 'INVALID_TOKEN' 
       });
+      return;
     }
 
     const insights = await cashFlowService.generateInsights(userId);
@@ -121,17 +124,18 @@ router.get('/insights', authenticate, async (req: Request, res: Response) => {
  * @desc Obter análise de tendências dos dados históricos
  * @access Private
  */
-router.get('/trend-analysis', authenticate, async (req: Request, res: Response) => {
+router.get('/trend-analysis', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ 
+      res.status(401).json({ 
         error: 'Token inválido', 
         code: 'INVALID_TOKEN' 
       });
+      return;
     }
 
-    const months = parseInt(req.query.months as string) || 6;
+    const months = parseInt(req.query['months'] as string) || 6;
     const historicalData = await cashFlowService.getHistoricalData(userId, months);
     const trendAnalysis = cashFlowService.analyzeTrend(historicalData);
 
@@ -159,14 +163,15 @@ router.get('/trend-analysis', authenticate, async (req: Request, res: Response) 
  * @desc Obter dados consolidados para dashboard de fluxo de caixa
  * @access Private
  */
-router.get('/dashboard', authenticate, async (req: Request, res: Response) => {
+router.get('/dashboard', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ 
+      res.status(401).json({ 
         error: 'Token inválido', 
         code: 'INVALID_TOKEN' 
       });
+      return;
     }
 
     // Buscar todos os dados necessários em paralelo
@@ -205,34 +210,37 @@ router.get('/dashboard', authenticate, async (req: Request, res: Response) => {
  * @desc Obter detalhes de um cenário específico
  * @access Private
  */
-router.get('/scenarios/:scenario', authenticate, async (req: Request, res: Response) => {
+router.get('/scenarios/:scenario', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ 
+      res.status(401).json({ 
         error: 'Token inválido', 
         code: 'INVALID_TOKEN' 
       });
+      return;
     }
 
     const scenario = req.params.scenario as 'pessimistic' | 'realistic' | 'optimistic';
     
     if (!['pessimistic', 'realistic', 'optimistic'].includes(scenario)) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Cenário inválido. Use: pessimistic, realistic ou optimistic',
         code: 'INVALID_SCENARIO'
       });
+      return;
     }
 
-    const periods = parseInt(req.query.periods as string) || 3;
+    const periods = parseInt(req.query['periods'] as string) || 3;
     const allProjections = await cashFlowService.generateProjections(userId, periods);
-    const specificProjection = allProjections.find(p => p.scenario === scenario);
+    const specificProjection = allProjections.find(p => p['scenario'] === scenario);
 
     if (!specificProjection) {
-      return res.status(404).json({
+      res.status(404).json({
         error: 'Cenário não encontrado',
         code: 'SCENARIO_NOT_FOUND'
       });
+      return;
     }
 
     res.json({
@@ -260,14 +268,15 @@ router.get('/scenarios/:scenario', authenticate, async (req: Request, res: Respo
  * @desc Obter score de saúde financeira detalhado
  * @access Private
  */
-router.get('/health-score', authenticate, async (req: Request, res: Response) => {
+router.get('/health-score', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ 
+      res.status(401).json({ 
         error: 'Token inválido', 
         code: 'INVALID_TOKEN' 
       });
+      return;
     }
 
     const insights = await cashFlowService.generateInsights(userId);
