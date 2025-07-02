@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "build": "npx prisma generate && echo 'Build completed - skipping TypeScript compilation'",
-    "start": "node dist/server.js",
+    "start": "ts-node src/server.ts",
     "dev": "nodemon src/server.ts",
     "dev:watch": "nodemon --exec ts-node src/server.ts",
     "postinstall": "npx prisma generate",
